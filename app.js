@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 
 const usersRouters = require('./routes/users.js');
 const cardsRouters = require('./routes/cards.js');
+const nonexistentRouter = require('./routes/nonexistent');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
 
 app.use('/', usersRouters);
 app.use('/', cardsRouters);
+app.all('/', nonexistentRouter);
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,

@@ -15,8 +15,11 @@ const getUsersById = (req, res) => {
     return res.status(200).send({ data: user });
   })
   .catch((err) => {
-    res.status(500).send({ message: err.message });
-  })
+    if (err.name === 'CastError') {
+      return res.status(404).send({ message: 'Невалидный id.' });
+    }
+      return res.status(500).send({ message: 'Внутренняя ошибка сервера.' });
+  });
 }
 
 const createUser = (req, res) => {
