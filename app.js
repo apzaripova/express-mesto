@@ -2,13 +2,13 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const usersRouters = require('./routes/users.js');
-const cardsRouters = require('./routes/cards.js');
+const usersRouters = require('./routes/users');
+const cardsRouters = require('./routes/cards');
 const nonexistentRouter = require('./routes/nonexistent');
 
 const app = express();
 
-app.use(bodyParser.json();
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
@@ -21,15 +21,15 @@ app.use((req, res, next) => {
 
 app.use('/', usersRouters);
 app.use('/', cardsRouters);
-app.all('/', nonexistentRouter);
+app.use('/', nonexistentRouter);
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
   useCreateIndex: true,
-    useFindAndModify: false
+  useFindAndModify: false,
 });
 
 const { PORT = 3000 } = process.env;
 app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`)
-})
+  console.log(`App listening on port ${PORT}`);
+});

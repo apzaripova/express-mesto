@@ -2,44 +2,44 @@ const Card = require('../models/card');
 
 const getAllCards = (req, res) => {
   Card.find({})
-  .then((cards) => {
-    res.status(200).send(cards)
-  })
-  .catch((err) => {
-    res.status(500).send({ message: `Внутренняя ошибка сервера: ${err}` });
-  })
+    .then((cards) => {
+      res.status(200).send(cards);
+    })
+    .catch((err) => {
+      res.status(500).send({ message: `Внутренняя ошибка сервера: ${err}` });
+    });
 };
 
 const createCard = (req, res) => {
   const { name, link } = req.body;
   const owner = req.user._id;
   Card.create({ name, link, owner })
-  .then((card) => {
-    res.status(200).send(card);
-  })
-  .catch((err) => {
-    if (err.name === 'ValidationError') {
-      return res.status(400).send({ message: 'Карточка не найдена' });
-    }
-      return res.status(500).send({ message: 'Ошибка на сервере'})
-  });
-}
+    .then((card) => {
+      res.status(200).send(card);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(400).send({ message: 'Карточка не найдена' });
+      }
+      return res.status(500).send({ message: 'Ошибка на сервере' });
+    });
+};
 
-const deleteCard = (req,res) => {
+const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.id)
-  .then((card) => {
-    if (!card) {
-      return res.status(404).send({ message: 'Карточки не существует' });
-    }
-    return res.status(200).send(card);
-  })
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Карточки не существует' });
+      }
+      return res.status(200).send(card);
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         return res.status(404).send({ message: 'Карточка не найдена.' });
       }
-        return res.status(500).send({ message: 'Ошибка на сервере' });
+      return res.status(500).send({ message: 'Ошибка на сервере' });
     });
-}
+};
 
 const getLikeCard = (req, res) => {
   Card.findByIdAndUpdate(
@@ -59,7 +59,7 @@ const getLikeCard = (req, res) => {
       }
       return res.status(500).send({ message: 'Ошибка на сервере' });
     });
-}
+};
 
 const deleteLikeCard = (req, res) => {
   Card.findByIdAndUpdate(
@@ -79,12 +79,12 @@ const deleteLikeCard = (req, res) => {
       }
       return res.status(500).send({ message: 'Ошибка на сервере' });
     });
-}
+};
 
 module.exports = {
   getAllCards,
   createCard,
   deleteCard,
   getLikeCard,
-  deleteLikeCard
+  deleteLikeCard,
 };
