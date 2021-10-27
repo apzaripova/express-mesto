@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
-const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const validator = require('validator');
+const NotAuthError = require('../errors/NotAuthError');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -21,6 +22,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator(v) {
+        return /(:?(?:https?:\/\/)?(?:www\.)?)?[-a-z0-9]+\.\w/g.test(v);
+      },
+      message: 'Некорректный url',
+    },
   },
   email: {
     required: true,
@@ -28,7 +35,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate: {
       validator(email) {
-        return this.validator.isEmail(email);
+        return validator.isEmail(email);
       },
       message: 'Введен некорректный email',
     },
@@ -45,12 +52,12 @@ userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        throw new UnauthorizedError({ message: 'Неправильные email или пароль' });
+        throw new NotAuthError({ message: 'Неправильные email или пароль' });
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            throw new UnauthorizedError({ message: 'Неправильные email или пароль' });
+            throw new NotAuthError({ message: 'Неправильные email или пароль' });
           }
           return user;
         });

@@ -82,6 +82,18 @@ const updateUser = (req, res, next) => {
     .catch(next);
 };
 
+const getCurrentUser = (req, res, next) => {
+  try {
+    const user = await User.findById({ _id: req.user._id });
+    if (!user) {
+      throw new NotFoundError('Нет пользователя с таким id');
+    }
+    res.status(200).send(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const updateUserAvatar = (res, req, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, {
@@ -132,5 +144,6 @@ module.exports = {
   createUser,
   updateUser,
   updateUserAvatar,
-  login
+  login,
+  getCurrentUser
 };

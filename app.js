@@ -4,10 +4,11 @@ const mongoose = require('mongoose');
 
 const usersRouters = require('./routes/users');
 const cardsRouters = require('./routes/cards');
-const nonexistentRouter = require('./routes/nonexistent');
 const { login, createUser } = require('./controllers/users');
+const auth = require('./middlewares/auth');
 
 const { errors, celebrate, Joi } = require('celebrate');
+const NotFoundError = require('./errors/NotFoundError');
 
 const app = express();
 
@@ -17,7 +18,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/', usersRouters);
 app.use('/', cardsRouters);
-app.use('/', nonexistentRouter);
+app.use(auth);
+app.use(errors());
 
 
 app.post(
@@ -46,22 +48,14 @@ app.post(
   createUser,
 );
 
-app.use(errors());
+app.use((req, res, next) => {
+  next(new NotFoundError('Запрашиваемый ресурс не найден'));
+});
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
-  if (err.kind === 'ObjectId') {
-    res.status(400).send({
-      message: 'Неверно переданы данные',
-    });
-  } else {
-    res.status(statusCode).send({
-      message: statusCode === 500
-        ? 'На сервере произошла ошибка'
-        : message,
-    });
-  }
-  next();
+  res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка сервера7' : message });
+  next(err);
 });
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
