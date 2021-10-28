@@ -83,15 +83,16 @@ const updateUser = (req, res, next) => {
 };
 
 const getCurrentUser = (req, res, next) => {
-  try {
-    const user = await User.findById({ _id: req.user._id });
-    if (!user) {
-      throw new NotFoundError('Нет пользователя с таким id');
-    }
-    res.status(200).send(user);
-  } catch (error) {
-    next(error);
-  }
+  const id = req.user._id;
+
+  User.findById(id)
+    .then((user) => {
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      res.send(err);
+    })
+    .catch(next);
 };
 
 const updateUserAvatar = (res, req, next) => {

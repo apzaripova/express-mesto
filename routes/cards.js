@@ -17,21 +17,21 @@ cardsRouter.post(
   }),
   createCard,
 );
-cardsRouter.delete(
-  '/cards/:cardId',
+cardsRouter.delete('/cards/:cardId',
   celebrate({
-    body: Joi.object().keys({
-      cardId: Joi.string().hex().length(24),
+    params: Joi.object().keys({
+      cardId: Joi.string().required().length(24).hex(),
     }),
   }),
   deleteCard,
 );
-router.put('/cards/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required().length(24).hex(),
-  }),
-}), getLikeCard);
-router.delete('/cards/:cardId/likes', celebrate({
+cardsRouter.put('/cards/:cardId/likes',
+  celebrate({
+    params: Joi.object().keys({
+      cardId: Joi.string().required().length(24).hex(),
+    }),
+  }), getLikeCard);
+cardsRouter.delete('/cards/:cardId/likes', celebrate({
   params: Joi.object().keys({
     cardId: Joi.string().required().alphanum().length(24),
   }),

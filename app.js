@@ -10,6 +10,7 @@ const auth = require('./middlewares/auth');
 const { errors, celebrate, Joi } = require('celebrate');
 const NotFoundError = require('./errors/NotFoundError');
 
+
 const app = express();
 
 app.use(bodyParser.json());
