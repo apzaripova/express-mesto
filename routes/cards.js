@@ -11,27 +11,27 @@ cardsRouter.post(
   celebrate({
     body: Joi.object().keys({
       name: Joi.string().required().min(2).max(30),
-      link: Joi.string().required()
-        .regex(/^(https?:\/\/)?([\da-z.-]+).([a-z.]{2,6})([/\w.-]*)*\/?$/),
+      link: Joi.string().required().pattern(/^(http|https):\/\/[^ "]+$/),
     }),
   }),
   createCard,
 );
+
 cardsRouter.delete('/cards/:cardId',
   celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().required().length(24).hex(),
     }),
   }),
-  deleteCard,
-);
-cardsRouter.put('/cards/:cardId/likes',
+  deleteCard);
+
+cardsRouter.put('/cards/likes/:cardId',
   celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().required().length(24).hex(),
     }),
   }), getLikeCard);
-cardsRouter.delete('/cards/:cardId/likes', celebrate({
+cardsRouter.delete('/cards/likes/:cardId', celebrate({
   params: Joi.object().keys({
     cardId: Joi.string().required().alphanum().length(24),
   }),

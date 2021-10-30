@@ -2,7 +2,6 @@ const Card = require('../models/card');
 
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
-const ForbiddenError = require('../errors/ForbiddenError');
 
 const getAllCards = (req, res) => {
   Card.find({})
@@ -30,21 +29,18 @@ const createCard = (req, res, next) => {
 };
 
 const deleteCard = (req, res, next) => {
-  const id = req.user._id;
-  Card.findById(req.params.cardId)
+  Card.findOneAndRemove({ owner: req.user._id, _id: req.params.cardId })
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Карточки не существует');
+        throw new NotFoundError('Нет карточки с таким id');
       }
-      if (card.owner.toString() !== userId) {
-        throw new ForbiddenError('Вы не можете удалять чужие карточки');
-      } else {
-        Card.findByIdAndDelete(req.params.cardId)
-        .then((deleteCard) => {
-          res.status(200).send(deletedCard);
-        })
-        .catch(next);
+      return res.status(200).send({ message: 'Карточка удалена' });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        throw new BadRequestError('Данные не прошли валидацию');
       }
+      throw err; // @TODO Подумать как можно реализовать поочевиднее
     })
     .catch(next);
 };
