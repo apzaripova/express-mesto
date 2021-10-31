@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
+const NotAuthError = require('../errors/NotAuthError');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -21,8 +23,8 @@ const userSchema = new mongoose.Schema({
     required: true,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator(v) {
-        return /(:?(?:https?:\/\/)?(?:www\.)?)?[-a-z0-9]+\.\w/g.test(v);
+      validator(link) {
+        return validator.isURL(link);
       },
       message: 'Некорректный url',
     },
@@ -41,9 +43,19 @@ const userSchema = new mongoose.Schema({
   password: {
     required: true,
     type: String,
-    minlength: 8,
     select: false,
   },
 });
+
+// eslint-disable-next-line func-names
+userSchema.statics.findUserByCredentials = function (email, password) {
+  return this.findOne({ email }).select('+password')
+    .then((user) => bcrypt.compare(password, user.password).then((matched) => {
+      if (!matched) {
+        throw new NotAuthError('Неправильные почта или пароль');
+      }
+      return user;
+    }));
+};
 
 module.exports = mongoose.model('user', userSchema);

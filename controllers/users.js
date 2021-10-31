@@ -1,12 +1,13 @@
 const bcrypt = require('bcryptjs');
-const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const validator = require('validator');
 const User = require('../models/user');
 
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
-const NotAuthError = require('../errors/NotAuthError');
 const ConflictError = require('../errors/ConflictError');
+
+const { NODE_ENV, JWT_SECRET } = process.env;
 
 function getUsers(req, res, next) {
   User.find({})
@@ -15,31 +16,21 @@ function getUsers(req, res, next) {
 }
 
 const getCurrentUser = (req, res, next) => {
-  const { userId } = req.params;
-
-  User.findById(userId)
-    .orFail(() => { throw Error('NoData'); })
+  User.findById(req.params.id)
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.message === 'NoData') {
-        throw new NotFoundError(404, 'Пользователь не найден');
-      } else if (err.name === 'CastError') {
-        throw new BadRequestError(400, 'Переданы некорректные данные');
-      }
+      res.send(err);
     })
     .catch(next);
 };
 
 const getMe = (req, res, next) => {
-  const userId = req.user._id;
-
-  User.findById(userId)
-    .orFail(new Error('NoData'))
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.message === 'NoData') {
-        throw new NotFoundError(404, 'Пользователь не найден');
+  User.findById(req.params.id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователь с таким id не найден');
       }
+      res.status(200).send(user);
     })
     .catch(next);
 };
@@ -52,7 +43,8 @@ const createUser = (req, res, next) => {
   if (!validator.isEmail(email)) {
     throw new BadRequestError('Некорректный email');
   }
-  bcrypt.hash(password, 10)
+  bcrypt
+    .hash(password, 10)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
@@ -61,14 +53,15 @@ const createUser = (req, res, next) => {
         throw new BadRequestError('Данные не прошли валидацию');
       }
       if (err.name === 'MongoError' || err.code === '11000') {
-        throw new ConflictError('Такой емейл уже зарегистрирован');
+        throw new ConflictError('Такой email уже зарегистрирован');
       }
     })
-    .then((user) => res.send({
+    .then((user) => res.status(200).send({
       name: user.name,
       about: user.about,
       avatar: user.avatar,
       email: user.email,
+      _is: user._id,
     }))
     .catch(next);
 };
@@ -122,26 +115,12 @@ const updateUserAvatar = (res, req, next) => {
 // контроллер Логин
 const login = (req, res, next) => {
   const { email, password } = req.body;
-
-  let userId;
-  User.findOne({ email }).select('+password')
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        throw new NotAuthError('Неправильные почта или пароль');
-      }
-
-      userId = user._id;
-
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        throw new NotAuthError('Неправильные почта или пароль');
-      }
-
-      const token = jwt.sign({ _id: userId }, 'some-secret-key', { expiresIn: '7d' });
-
-      res.cookie('jwt', token, { maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true }).end();
+      const token = jwt.sign(
+        { _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' },
+      );
+      res.send({ token: token.toString() });
     })
     .catch(next);
 };

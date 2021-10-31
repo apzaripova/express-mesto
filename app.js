@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
+require('dotenv').config();
 
 const { errors, celebrate, Joi } = require('celebrate');
 const usersRoutes = require('./routes/users');
@@ -22,19 +21,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useFindAndModify: false,
 });
 
-// устанавливаем заголовки
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  if (req.method === 'OPTIONS') {
-    res.send(200);
-  }
-  next();
-});
-
-app.use(bodyParser.json());
-app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(errors());
 
 app.post('/signup', celebrate({
@@ -57,7 +45,7 @@ app.post('/signin', celebrate({
 app.use(auth);
 app.use('/', usersRoutes);
 app.use('/', cardsRoutes);
-app.use('/', () => {
+app.use('*', () => {
   throw new NotFoundError('Запрашиваемый ресурс не найден');
 });
 
@@ -71,3 +59,4 @@ app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Сервер запущен на порту ${PORT}`);
 });
+
