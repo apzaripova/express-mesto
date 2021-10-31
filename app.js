@@ -59,4 +59,3 @@ app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Сервер запущен на порту ${PORT}`);
 });
-
