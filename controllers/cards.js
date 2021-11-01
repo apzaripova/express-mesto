@@ -17,13 +17,14 @@ const getAllCards = (req, res, next) => {
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
+
   Card.create({ name, link, owner })
     .then((card) => {
       res.status(200).send(card);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequestError(err.message);
+        throw new BadRequestError('Переданы некорректные данные');
       }
     })
     .catch(next);
@@ -45,7 +46,8 @@ const deleteCard = (req, res, next) => {
             res.status(200).send(card);
           });
       }
-    }).catch(next);
+    })
+    .catch(next);
 };
 
 // установка лайка
