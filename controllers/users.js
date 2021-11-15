@@ -90,23 +90,32 @@ const updateUser = (req, res, next) => {
 };
 
 // контроллер обновления аватара
-const updateUserAvatar = (res, req, next) => {
+const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
-
-  User.findOneAndUpdate(req.user._id, avatar,
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
     {
       new: true,
       runValidators: true,
-    })
+    },
+  )
     .then((user) => {
-      res.send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        throw new BadRequestError('Переданы некорректные данные');
+      if (!user) {
+        next(new NotFoundError('Пользователь не найден'));
+      } else {
+        res.send(user);
       }
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Неверный идентификатор пользователя'));
+      } else if (err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 // контроллер Логин
