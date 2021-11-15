@@ -35,7 +35,7 @@ const getMe = (req, res, next) => {
       if (!user) {
         throw new NotFoundError('Пользователь с таким id не найден');
       }
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch(next);
 };
@@ -59,7 +59,7 @@ const createUser = (req, res, next) => {
         throw new ConflictError('Такой email уже зарегистрирован');
       }
     })
-    .then((user) => res.status(200).send({
+    .then((user) => res.send({
       name: user.name,
       about: user.about,
       avatar: user.avatar,
@@ -79,7 +79,7 @@ const updateUser = (req, res, next) => {
     runValidators: true,
   })
     .then((user) => {
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -91,17 +91,15 @@ const updateUser = (req, res, next) => {
 
 // контроллер обновления аватара
 const updateUserAvatar = (res, req, next) => {
-  const id = req.user._id;
   const { avatar } = req.body;
 
-  User.findOneAndUpdate(id,
-    { avatar },
+  User.findOneAndUpdate(req.user._id, avatar,
     {
       new: true,
       runValidators: true,
     })
     .then((user) => {
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {

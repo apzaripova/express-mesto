@@ -8,7 +8,7 @@ const ConflictError = require('../errors/ConflictError');
 const getAllCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
-      res.status(200).send(cards);
+      res.send(cards);
     })
     .catch((next));
 };
@@ -19,12 +19,10 @@ const createCard = (req, res, next) => {
   const owner = req.user._id;
 
   Card.create({ name, link, owner })
-    .then((card) => {
-      res.status(200).send(card);
-    })
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequestError('Переданы некорректные данные');
+        throw new BadRequestError('Данные не прошли валидацию');
       }
     })
     .catch(next);
@@ -43,7 +41,7 @@ const deleteCard = (req, res, next) => {
         Card.findByIdAndDelete(req.params.id)
           // eslint-disable-next-line no-shadow
           .then((card) => {
-            res.status(200).send(card);
+            res.send(card);
           });
       }
     })
@@ -61,7 +59,7 @@ const getLikeCard = (req, res, next) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена');
       }
-      res.status(200).send(card);
+      res.send(card);
     })
     .catch(next);
 };
@@ -69,7 +67,7 @@ const getLikeCard = (req, res, next) => {
 // удаление лайка
 const deleteLikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
-    req.params.cardId,
+    req.params.id,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
@@ -77,7 +75,7 @@ const deleteLikeCard = (req, res, next) => {
       if (!card) {
         throw new NotFoundError('Карточка не найдена');
       }
-      res.status(200).send(card);
+      res.send(card);
     })
     .catch(next);
 };

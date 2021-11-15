@@ -6,8 +6,8 @@ const validator = require('validator');
 const {
   errors, celebrate, Joi, CelebrateError,
 } = require('celebrate');
-const usersRoutes = require('./routes/users');
-const cardsRoutes = require('./routes/cards');
+const usersRouter = require('./routes/users');
+const cardsRouter = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 
@@ -52,8 +52,8 @@ app.post('/signin', celebrate({
 }), login);
 
 app.use(auth);
-app.use('/', usersRoutes);
-app.use('/', cardsRoutes);
+app.use('/', usersRouter);
+app.use('/', cardsRouter);
 app.use('*', () => {
   throw new NotFoundError('Запрашиваемый ресурс не найден');
 });
