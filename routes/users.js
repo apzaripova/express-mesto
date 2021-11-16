@@ -32,7 +32,7 @@ usersRouter.patch(
   '/users/me/avatar',
   celebrate({
     body: Joi.object().keys({
-      avatar: Joi.string.require().custom((value) => {
+      avatar: Joi.custom((value) => {
         if (!isURL(value, { require_protocol: true })) {
           throw new BadRequestError('Ссылка на аватарку неверна');
         }
